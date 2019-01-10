@@ -49,9 +49,20 @@ type identifyProperties struct {
 	Device  string `json:"$device"`
 }
 
+type dispatch struct {
+	D interface{} `json:"d"`
+	T string      `json:"t"`
+}
+
 type readyDispatch struct {
 	Version   string        `json:"v"`
 	User      interface{}   `json:"user"`   // TODO: user type
 	Guilds    []interface{} `json:"guilds"` // TODO: guild type
 	SessionID string        `json:"session_id"`
+}
+
+// DispatchEvent is an event dispatched by the API
+type DispatchEvent struct {
+	Shard int // the ID of the shard receiving this event
+	Data  interface{}
 }

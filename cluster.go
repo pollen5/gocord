@@ -5,16 +5,20 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+
+	eventemitter "github.com/euskadi31/go-eventemitter"
 )
 
 // Cluster of Shards connecting to the gateway
 type Cluster struct {
+	*eventemitter.Emitter
 	Token       string
 	Shards      map[int]*Shard
 	TotalShards int
-	Dispatch    chan interface{} // chan for gateway dispatch data
 	GatewayURL  string
 	Options     ClusterOptions
+
+	handlers sync.Map // event handlers
 }
 
 // ClusterOptions ...
@@ -44,8 +48,8 @@ func (c *Cluster) fetchRecommendedShards() int {
 // NewCluster returns a cluster instance
 func NewCluster(token string, opts ClusterOptions) *Cluster {
 	cluster := &Cluster{
-		Token:    token,
-		Dispatch: make(chan interface{}),
+		Emitter: eventemitter.New(),
+		Token:   token,
 	}
 	cluster.Options = opts
 	recShards := cluster.fetchRecommendedShards()

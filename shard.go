@@ -92,7 +92,7 @@ func (s *Shard) onMessage(packet *receivePayload) error {
 			return err
 		}
 
-		go s.heartbeat(time.Duration(pk.HeartbeatInterval))
+		go s.startHeartbeat(time.Duration(pk.HeartbeatInterval))
 		return s.identify()
 
 	case OPCodeDispatch:
@@ -142,10 +142,18 @@ func (s *Shard) listen() (<-chan *receivePayload, <-chan error) {
 	return msgChan, errChan
 }
 
-func (s *Shard) heartbeat(duration time.Duration) {
+func (s *Shard) startHeartbeat(duration time.Duration) {
 	s.heartbeatTicker = time.NewTicker(duration)
 
 	for range s.heartbeatTicker.C {
-		s.send(OPCodeHeartbeat, s.Seq)
+		s.heartbeat()
 	}
+}
+
+func (s *Shard) heartbeat() error {
+	// TODO: disconnect if heartneatAcked = false
+	err := s.send(OPCodeHeartbeat, s.Seq)
+	// sent heartbeat hasn't been acknowledged yet
+	s.heartbeatAcked = false
+	return err
 }
