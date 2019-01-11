@@ -16,7 +16,7 @@ import (
 // are done through Shards, with events being forwarded to the main Cluster
 type Shard struct {
 	sync.Mutex
-	cluster         *Cluster
+	Cluster         *Cluster
 	ws              *websocket.Conn
 	heartbeatTicker *time.Ticker
 	heartbeatAcked  bool // whether the heartbeat has been acknowledged
@@ -32,7 +32,7 @@ type Shard struct {
 func NewShard(ID int, cluster *Cluster) *Shard {
 	shard := &Shard{
 		Mutex:          sync.Mutex{},
-		cluster:        cluster,
+		Cluster:        cluster,
 		heartbeatAcked: true,
 
 		ID:    ID,
@@ -48,8 +48,8 @@ func (s *Shard) Connect() (err error) {
 	defer s.Unlock()
 
 	// TODO: forward this to the rest API when done
-	s.cluster.GatewayURL = fmt.Sprintf("%s?v=%d&encoding=json", s.cluster.GatewayURL, APIVersion)
-	s.ws, _, err = websocket.DefaultDialer.Dial(s.cluster.GatewayURL, nil)
+	s.Cluster.GatewayURL = fmt.Sprintf("%s?v=%d&encoding=json", s.Cluster.GatewayURL, APIVersion)
+	s.ws, _, err = websocket.DefaultDialer.Dial(s.Cluster.GatewayURL, nil)
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect to gateway: %s", err.Error()))
 	}
@@ -118,8 +118,8 @@ func (s *Shard) identify() error {
 			Browser: "gocord",
 			Device:  "gocord",
 		},
-		Shard:    [2]int{s.ID, s.cluster.TotalShards},
-		Presence: s.cluster.Options.Presence,
+		Shard:    [2]int{s.ID, s.Cluster.TotalShards},
+		Presence: s.Cluster.Options.Presence,
 	})
 }
 
