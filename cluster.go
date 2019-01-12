@@ -21,11 +21,12 @@ type Cluster struct {
 	handlers sync.Map // event handlers
 }
 
-// ClusterOptions ...
+// ClusterOptions are the options used in the cluster
 type ClusterOptions struct {
 	Shards      []int // an array of shard IDs
 	TotalShards int   // the total shards to spawn
 	Presence    Presence
+	Debug       bool // set to true during debug mode ONLY, this will log a lot of (useful) stuff such as reconnects and headers
 }
 
 func (c *Cluster) fetchRecommendedShards() int {

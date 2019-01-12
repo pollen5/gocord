@@ -90,6 +90,28 @@ func (r *RestManager) Do(method string, path string, body []byte, respBody inter
 	return nil
 }
 
+// SimpleRequest creates a simple JSON request to the supplied URL
+func SimpleRequest(method string, url string, body []byte, respBody interface{}) error {
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("error intializing request: %s", err.Error())
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	err = json.Unmarshal(getBody(res.Body), respBody)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling json: %s", err.Error())
+	}
+
+	return nil
+}
+
 // ParseRoute parses a route to be used in a bucket
 // adapted from the JavaScript version made by PoLLeN#5796
 func ParseRoute(method string, route string) string {

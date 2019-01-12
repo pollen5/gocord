@@ -25,10 +25,11 @@ type helloPayload struct {
 }
 
 type identifyPayload struct {
-	Token      string             `json:"token"`
-	Properties identifyProperties `json:"properties"`
-	Shard      [2]int             `json:"shard"`
-	Presence   Presence           `json:"presence"`
+	Token          string             `json:"token"`
+	Properties     identifyProperties `json:"properties"`
+	Shard          [2]int             `json:"shard"`
+	Presence       Presence           `json:"presence"`
+	LargeThreshold int                `json:"large_threshold"`
 }
 
 // Presence represents a Discord presence object
@@ -55,10 +56,16 @@ type dispatch struct {
 }
 
 type readyDispatch struct {
-	Version   string        `json:"v"`
-	User      interface{}   `json:"user"`   // TODO: user type
-	Guilds    []interface{} `json:"guilds"` // TODO: guild type
-	SessionID string        `json:"session_id"`
+	Version   int         `json:"v"`
+	User      interface{} `json:"user"`   // TODO: user type
+	Guilds    []*Guild    `json:"guilds"` // TODO: guild type
+	SessionID string      `json:"session_id"`
+}
+
+type resumeDispatch struct {
+	Token     string `json:"token"`
+	SessionID string `json:"session_id"`
+	Sequence  int    `json:"seq"`
 }
 
 // DispatchEvent is an event dispatched by the API

@@ -23,18 +23,20 @@ type Item struct {
 func NewCache(capacity int) *Cache {
 	return &Cache{
 		Mutex:    sync.Mutex{},
-		holds:    make(map[string]*Item),
 		capacity: capacity,
+		holds:    make(map[string]*Item),
+	}
+}
+
+func newItem(item interface{}) *Item {
+	return &Item{
+		lastUsed: time.Now().UnixNano(),
+		item:     item,
 	}
 }
 
 func (c *Cache) Add(id string, item interface{}) {
-	c.Lock()
-	defer c.Unlock()
-	insertable := &Item{
-		lastUsed: time.Now().UnixNano(),
-		item:     item,
-	}
+	insertable := newItem(item)
 	c.holds[id] = insertable
 }
 
@@ -44,6 +46,20 @@ func (c *Cache) Remove(id string) {
 	c.Unlock()
 }
 
+func (c *Cache) Update(id string, ele interface{}) {
+	c.Lock()
+	defer c.Unlock()
+
+	if _, ok := c.holds[id]; !ok {
+		c.Add(id, ele)
+	} else {
+		c.holds[id] = &Item{
+			lastUsed: time.Now().UnixNano(),
+			item:     ele,
+		}
+	}
+}
+
 func (c *Cache) Size() int {
 	var i int
 	for range c.holds {
@@ -51,6 +67,11 @@ func (c *Cache) Size() int {
 	}
 
 	return i
+}
+
+func (c *Cache) Has(key string) bool {
+	_, ok := c.holds[key]
+	return ok
 }
 
 func (c *Cache) clearLRU(exception string) {

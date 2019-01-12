@@ -3,6 +3,7 @@ package main
 // this will be updated when the lib is more complete
 import (
 	"flag"
+	"fmt"
 
 	"github.com/Soumil07/gocord"
 )
@@ -23,6 +24,11 @@ func main() {
 			},
 			Status: gocord.DoNotDisturbPresence,
 		},
+		Debug: true,
 	})
 	cluster.Spawn()
+
+	cluster.Subscribe("ready", func() {
+		fmt.Println("Ready to roll!")
+	})
 }

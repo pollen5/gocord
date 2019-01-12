@@ -51,8 +51,5 @@ type Emoji struct {
 type Member struct {
 }
 
-type Channel struct {
-}
-
 type GuildMemberPresence struct {
 }

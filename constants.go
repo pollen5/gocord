@@ -17,7 +17,10 @@ const (
 )
 
 const (
-	ReadyEvent = "Ready"
+	// ReadyEvent is the first event sent by Discord, including the session ID, guilds and other information
+	ReadyEvent = "READY"
+	// GuildCreateEvent is dispatched to lazy load a guild, or when a new guild is added
+	GuildCreateEvent = "GUILD_CREATE"
 )
 
 const (
@@ -25,6 +28,18 @@ const (
 	IdlePresence         = "idle"
 	DoNotDisturbPresence = "dnd"
 	InvisiblePresence    = "invisible"
+)
+
+// Game activity types
+const (
+	// Playing gocord
+	ActivityTypePlaying = iota
+	// Streaming gocord
+	ActivityTypeStreaming
+	// Listening to gocord
+	ActivityTypeListening
+	// Watching gocord
+	ActivityTypeWatching
 )
 
 const (
