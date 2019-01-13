@@ -26,9 +26,12 @@ func main() {
 		},
 		Debug: true,
 	})
-	cluster.Spawn()
 
-	cluster.Subscribe("ready", func() {
+	cluster.Subscribe("ready", func(s *gocord.Shard) {
 		fmt.Println("Ready to roll!")
+		s.CreateMessage("515858497712160781", "hi from gocord!")
 	})
+
+	cluster.Spawn()
+	cluster.Wait()
 }

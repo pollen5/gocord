@@ -10,8 +10,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/Soumil07/gocord"
 )
 
 var (
@@ -27,7 +25,6 @@ func getBody(r io.Reader) []byte {
 type RestManager struct {
 	sync.Mutex
 	Token       string
-	Shard       *gocord.Shard
 	GlobalReset time.Time
 	buckets     *sync.Map
 }
@@ -65,6 +62,7 @@ func (r *RestManager) Do(method string, path string, body []byte, respBody inter
 	bucket := r.GetBucket(route)
 
 	resp, err := bucket.Request(method, path, body)
+	fmt.Printf("%#v", resp)
 	defer resp.Body.Close()
 	if err != nil {
 		// sometimes the error is while updating headers, so there is a body

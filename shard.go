@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Soumil07/gocord/cache"
+	"github.com/Soumil07/gocord/rest"
 	"github.com/gorilla/websocket"
 )
 
@@ -29,6 +30,7 @@ type Shard struct {
 	Seq        int
 	SessionID  string
 	GuildCache *cache.Cache // a mutable LRU cache with capacity set to 0
+	Rest       *rest.RestManager
 }
 
 // NewShard returns a new shard instance
@@ -40,6 +42,7 @@ func NewShard(ID int, cluster *Cluster) *Shard {
 		ID:         ID,
 		Token:      cluster.Token,
 		GuildCache: cache.NewCache(0),
+		Rest:       rest.NewRestManager(cluster.Token),
 	}
 
 	return shard
@@ -47,9 +50,6 @@ func NewShard(ID int, cluster *Cluster) *Shard {
 
 // Connect establishes a connection with the Discord API
 func (s *Shard) Connect() (err error) {
-	s.Lock()
-	defer s.Unlock()
-
 	// TODO: forward this to the rest API when done
 	s.Cluster.GatewayURL = fmt.Sprintf("%s?v=%d&encoding=json", s.Cluster.GatewayURL, APIVersion)
 	s.ws, _, err = websocket.DefaultDialer.Dial(s.Cluster.GatewayURL, nil)
@@ -75,6 +75,9 @@ func (s *Shard) Connect() (err error) {
 
 // wrapper around sending to WS
 func (s *Shard) send(op int, d interface{}) error {
+	s.Lock()
+	defer s.Unlock()
+
 	return s.ws.WriteJSON(&sendPayload{
 		OP: op,
 		D:  d,
@@ -97,6 +100,8 @@ func (s *Shard) onMessage(packet *receivePayload) error {
 
 		s.debugf("heartbeat interval: %d", pk.HeartbeatInterval)
 		go s.startHeartbeat(time.Duration(pk.HeartbeatInterval) * time.Millisecond)
+
+		s.debug("sending identify payload")
 		return s.identify()
 
 	case OPCodeDispatch:
@@ -117,7 +122,7 @@ func (s *Shard) onMessage(packet *receivePayload) error {
 			}
 			s.debugf("%d guilds loaded, %d unavailable", s.GuildCache.Size(), unavailableGuilds)
 
-			s.Cluster.Dispatch("ready")
+			s.Cluster.Dispatch("ready", s)
 
 		// GUILD_CREATE is sometimes fired immediately after ready to load all lazy loaded guilds
 		case GuildCreateEvent:

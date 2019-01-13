@@ -78,15 +78,28 @@ func NewCluster(token string, opts ClusterOptions) *Cluster {
 	return cluster
 }
 
-func (c *Cluster) Spawn() {
+// Spawn starts all shards and returns a slice of errors returned from every shard
+func (c *Cluster) Spawn() []error {
 	var wg sync.WaitGroup
+	var out []error
+
 	for _, shard := range c.Shards {
 		wg.Add(1)
 		err := shard.Connect()
 		if err != nil {
-			panic(err)
+			out = append(out, err)
 		}
 	}
 
 	wg.Wait()
+	return out
+}
+
+/* USEFUL SHARD-CLUSTER WRAPPERS */
+func (c *Cluster) Guilds() (n int) {
+	for _, shard := range c.Shards {
+		n += shard.GuildCache.Size()
+	}
+
+	return
 }
