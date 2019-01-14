@@ -1,5 +1,9 @@
 package gocord
 
+const (
+	VERSION = "0.1.0"
+)
+
 // OPCodes, as documented at https://discordapp.com/developers/docs/topics/opcodes-and-status-codes
 const (
 	OPCodeDispatch = iota
@@ -21,6 +25,8 @@ const (
 	ReadyEvent = "READY"
 	// GuildCreateEvent is dispatched to lazy load a guild, or when a new guild is added
 	GuildCreateEvent = "GUILD_CREATE"
+	// MessageEvent is dispatched when a message is sent
+	MessageEvent = "MESSAGE_CREATE"
 )
 
 const (

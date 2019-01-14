@@ -2,11 +2,11 @@ package rest
 
 import (
 	"bytes"
-	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -21,8 +21,6 @@ type Bucket struct {
 	Remaining int64
 	Limit     int64
 
-	queue      []*http.Request
-	busy       bool
 	resetTime  time.Time
 	httpClient *http.Client
 }
@@ -41,7 +39,6 @@ func NewBucket(r *RestManager, route string) *Bucket {
 		Remaining: 1,
 		Limit:     1,
 
-		busy:       false,
 		resetTime:  time.Time{},
 		httpClient: &http.Client{},
 	}
@@ -50,9 +47,9 @@ func NewBucket(r *RestManager, route string) *Bucket {
 }
 
 // Request creates an http request
-func (b *Bucket) Request(method string, path string, body []byte) (*http.Response, error) {
+func (b *Bucket) Request(method string, path string, body []byte, files ...io.Reader) (*http.Response, error) {
 	if b.Manager.GloballyRateLimited() {
-		<-time.After(time.Until(b.Manager.GlobalReset))
+		<-time.After(time.Until(time.Unix(0, atomic.LoadInt64(b.Manager.global))))
 	}
 
 	if b.Remaining < 1 {
@@ -65,77 +62,55 @@ func (b *Bucket) Request(method string, path string, body []byte) (*http.Respons
 	next, _ := http.NewRequest(method, API_URL+path, bytes.NewBuffer(body))
 	next.Header.Set("Authorization", "Bot "+b.Manager.Token)
 	next.Header.Set("User-Agent", "DiscordBot (https://github.com/Soumil07/gocord, v1)")
+
+	next.Header.Set("Content-Type", "application/json")
 	resp, err := b.httpClient.Do(next)
 	if err != nil {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
 	err = b.UpdateHeaders(resp, path)
 	if err != nil {
 		return resp, err
 	}
+
 	return resp, nil
 }
 
 func (b *Bucket) UpdateHeaders(resp *http.Response, path string) error {
 	remaining := resp.Header.Get("X-Ratelimit-Remaining")
-	limit := resp.Header.Get("X-Ratelimit-Limit")
+	reset := resp.Header.Get("X-Ratelimit-Reset")
+	global := resp.Header.Get("X-RateLimit-Global")
+	retryAfter := resp.Header.Get("Retry-After")
+
+	if retryAfter != "" {
+		parsed, _ := strconv.ParseInt(retryAfter, 10, 64)
+		resetTime := time.Now().Add(time.Duration(parsed) * time.Millisecond)
+		if global != "" {
+			atomic.StoreInt64(b.Manager.global, resetTime.UnixNano())
+		} else {
+			b.resetTime = resetTime
+		}
+	} else if reset != "" {
+		dTime, err := http.ParseTime(resp.Header.Get("Date"))
+		if err != nil {
+			return err
+		}
+
+		unixTime, err := strconv.ParseInt(reset, 10, 64)
+		if err != nil {
+			return err
+		}
+
+		b.resetTime = time.Now().Add(time.Unix(unixTime, 0).Sub(dTime) + time.Millisecond*250)
+	}
 
 	if remaining != "" {
-		b.Remaining, _ = strconv.ParseInt(remaining, 10, 32)
-	}
-
-	if limit != "" {
-		b.Limit, _ = strconv.ParseInt(remaining, 10, 32)
-	}
-
-	switch {
-	// handle ratelimits
-	case resp.StatusCode == http.StatusTooManyRequests:
-		// TODO:
-		// b.Manager.Shard.Cluster.Dispatch("debug", "Ratelimit")
-		bytes, err := ioutil.ReadAll(resp.Body)
+		parsedRemaining, err := strconv.ParseInt(remaining, 10, 32)
 		if err != nil {
 			return err
 		}
-
-		var resp ratelimitedResponse
-		json.Unmarshal(bytes, &resp)
-
-		reset := time.Now().Add(time.Duration(resp.RetryAfter))
-		if resp.Global {
-			b.Manager.GlobalReset = reset
-		} else {
-			b.resetTime = reset
-		}
-
-		return nil
-
-	case resp.StatusCode >= 500 && resp.StatusCode <= 600:
-		// handle 5xx errors
-		<-time.After(5 * time.Second)
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Request.Body)
-		b.Request(resp.Request.Method, path, buf.Bytes())
-
-	default:
-		reset := resp.Header.Get("X-RateLimit-Reset")
-		if reset == "" {
-			return nil
-		}
-
-		resetTime, err := strconv.ParseInt(reset, 10, 32)
-		if err != nil {
-			return err
-		}
-
-		timeSent, err := time.Parse(resp.Header.Get("Date"), time.RFC1123)
-		if err != nil {
-			timeSent = time.Now()
-		}
-		b.resetTime = time.Unix(resetTime, 0).Add(time.Now().Sub(timeSent))
-		return nil
+		b.Remaining = parsedRemaining
 	}
 
 	return nil

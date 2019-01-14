@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -17,34 +19,35 @@ var (
 )
 
 func getBody(r io.Reader) []byte {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(r)
-	return buf.Bytes()
+	body, err := ioutil.ReadAll(r)
+	if err != nil {
+		panic(err)
+	}
+
+	return body
 }
 
 type RestManager struct {
-	sync.Mutex
-	Token       string
-	GlobalReset time.Time
-	buckets     *sync.Map
+	Token string
+
+	global  *int64
+	buckets *sync.Map
 }
 
 func NewRestManager(token string) *RestManager {
 	return &RestManager{
-		Token:       token,
-		GlobalReset: time.Time{},
-		buckets:     &sync.Map{},
+		Token:   token,
+		global:  new(int64),
+		buckets: &sync.Map{},
 	}
 }
 
 func (r *RestManager) GloballyRateLimited() bool {
-	return time.Now().Before(r.GlobalReset)
+	globalTime := time.Unix(0, atomic.LoadInt64(r.global))
+	return time.Now().Before(globalTime)
 }
 
 func (r *RestManager) GetBucket(route string) *Bucket {
-	r.Lock()
-	defer r.Unlock()
-
 	if bucket, ok := r.buckets.Load(route); ok {
 		return bucket.(*Bucket)
 	}
@@ -56,14 +59,12 @@ func (r *RestManager) GetBucket(route string) *Bucket {
 }
 
 func (r *RestManager) Do(method string, path string, body []byte, respBody interface{}) error {
-	r.Lock()
-	defer r.Unlock()
 	route := ParseRoute(method, path)
 	bucket := r.GetBucket(route)
 
 	resp, err := bucket.Request(method, path, body)
-	fmt.Printf("%#v", resp)
 	defer resp.Body.Close()
+
 	if err != nil {
 		// sometimes the error is while updating headers, so there is a body
 		if resp != nil {

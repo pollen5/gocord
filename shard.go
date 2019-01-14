@@ -140,6 +140,15 @@ func (s *Shard) onMessage(packet *receivePayload) error {
 				s.GuildCache.Add(guild.ID, guild)
 				s.Cluster.Dispatch("guildCreate", guild)
 			}
+
+		case MessageEvent:
+			var m Message
+			err := json.Unmarshal(packet.D, &m)
+			if err != nil {
+				panic(err)
+			}
+
+			s.Cluster.Dispatch("message", s, m)
 		}
 
 	case OPCodeHeartbeatAck:

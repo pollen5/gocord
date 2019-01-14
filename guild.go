@@ -29,7 +29,7 @@ type Guild struct {
 	WidgetChannelID string   `json:"widget_channel_id,omitempty"`
 	SystemChannelID string   `json:"system_channel_id,omitempty"`
 
-	JoinedAt    string                `json:"joined_at"`
+	JoinedAt    string                `json:"joined_at,omitempty"`
 	Large       bool                  `json:"large,omitempty"`
 	Unavailable bool                  `json:"unavailable,omitempty"`
 	MemberCount int                   `json:"member_count,omitempty"`
