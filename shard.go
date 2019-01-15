@@ -142,13 +142,13 @@ func (s *Shard) onMessage(packet *receivePayload) error {
 			}
 
 		case MessageEvent:
-			var m Message
+			var m *Message
 			err := json.Unmarshal(packet.D, &m)
 			if err != nil {
 				panic(err)
 			}
 
-			s.Cluster.Dispatch("message", s, *m)
+			s.Cluster.Dispatch("message", s, m)
 		}
 
 	case OPCodeHeartbeatAck:
