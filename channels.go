@@ -55,19 +55,37 @@ func (m *Message) EditedAt() (time.Time, error) {
 }
 
 // CreateMessage sends a message to the specified channel
-func (s *Shard) CreateMessage(channelID string, message string) (m *Message) {
-	endpoint := rest.ChannelMessage(channelID)
+func (s *Shard) CreateMessage(channelID string, message string) (m *Message, err error) {
+	endpoint := rest.ChannelMessages(channelID)
 
 	body, err := json.Marshal(&struct {
 		Content string `json:"content"`
 	}{message})
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	err = s.Rest.Do(http.MethodPost, endpoint, body, &m)
 	if err != nil {
-		panic(err)
+		return
+	}
+
+	return
+}
+
+func (s *Shard) EditMessage(channelID, messageID, message string) (m *Message) {
+	endpoint := rest.ChannelMessage(messageID, channelID)
+
+	body, err := json.Marshal(&struct {
+		Content string `json:"content"`
+	}{message})
+	if err != nil {
+		return
+	}
+
+	err = s.Rest.Do(http.MethodPatch, endpoint, body, &m)
+	if err != nil {
+		return
 	}
 
 	return

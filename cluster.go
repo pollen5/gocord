@@ -96,9 +96,20 @@ func (c *Cluster) Spawn() []error {
 }
 
 /* USEFUL SHARD-CLUSTER WRAPPERS */
+
 func (c *Cluster) Guilds() (n int) {
 	for _, shard := range c.Shards {
 		n += shard.GuildCache.Size()
+	}
+
+	return
+}
+
+func (c *Cluster) Members() (n int) {
+	for _, shard := range c.Shards {
+		for _, guild := range shard.GuildCache.Range() {
+			n += guild.(Guild).MemberCount
+		}
 	}
 
 	return

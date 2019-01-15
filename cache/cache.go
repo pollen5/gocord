@@ -74,6 +74,14 @@ func (c *Cache) Has(key string) bool {
 	return ok
 }
 
+func (c *Cache) Range() (a []interface{}) {
+	for _, v := range c.holds {
+		a = append(a, v.item)
+	}
+
+	return
+}
+
 func (c *Cache) clearLRU(exception string) {
 	// don't clear the cache if we haven't reached full capacity
 	if c.Size() < c.capacity {
