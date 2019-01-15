@@ -148,7 +148,7 @@ func (s *Shard) onMessage(packet *receivePayload) error {
 				panic(err)
 			}
 
-			s.Cluster.Dispatch("message", s, m)
+			s.Cluster.Dispatch("message", s, *m)
 		}
 
 	case OPCodeHeartbeatAck:
