@@ -30,15 +30,15 @@ type Channel struct {
 }
 
 type Message struct {
-	ID              string      `json:"id"`
-	ChannelID       string      `json:"channel_id"`
-	GuildID         string      `json:"guild_id,omitempty"`
-	Author          interface{} `json:"author,omitempty"`
-	Content         string      `json:"content"`
-	Timestamp       string      `json:"timestamp"`
-	EditedTimestamp string      `json:"edited_timestamp"`
-	TTS             bool        `json:"tts"`
-	MentionEveryone bool        `json:"mention_everyone"`
+	ID              string `json:"id"`
+	ChannelID       string `json:"channel_id"`
+	GuildID         string `json:"guild_id,omitempty"`
+	Author          User   `json:"author,omitempty"`
+	Content         string `json:"content"`
+	Timestamp       string `json:"timestamp"`
+	EditedTimestamp string `json:"edited_timestamp"`
+	TTS             bool   `json:"tts"`
+	MentionEveryone bool   `json:"mention_everyone"`
 }
 
 // CreatedAt returns a time object representing when the message was created

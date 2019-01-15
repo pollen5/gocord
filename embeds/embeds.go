@@ -121,6 +121,15 @@ func (e *Embed) SetDescription(d string) *Embed {
 	return e
 }
 
+func (e *Embed) SetAuthor(name, icon string) *Embed {
+	e.Author = EmbedAuthor{
+		Name:    name,
+		IconURL: icon,
+	}
+
+	return e
+}
+
 func (e *Embed) SetColor(color interface{}) *Embed {
 	switch color.(type) {
 	case int, int32, int64:
