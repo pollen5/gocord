@@ -51,6 +51,9 @@ func NewShard(ID int, cluster *Cluster) *Shard {
 // Connect establishes a connection with the Discord API
 func (s *Shard) Connect() (err error) {
 	// TODO: forward this to the rest API when done
+	if s.Cluster.GatewayURL == "" {
+		s.Cluster.fetchRecommendedShards()
+	}
 	s.Cluster.GatewayURL = fmt.Sprintf("%s?v=%d&encoding=json", s.Cluster.GatewayURL, APIVersion)
 	s.ws, _, err = websocket.DefaultDialer.Dial(s.Cluster.GatewayURL, nil)
 	if err != nil {

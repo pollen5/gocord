@@ -58,11 +58,14 @@ func (r *RestManager) GetBucket(route string) *Bucket {
 	return bucket
 }
 
-func (r *RestManager) Do(method string, path string, body []byte, respBody interface{}) error {
+func (r *RestManager) Do(method string, path string, body []byte, respBody interface{}, files ...File) error {
 	route := ParseRoute(method, path)
 	bucket := r.GetBucket(route)
 
-	resp, err := bucket.Request(method, path, body)
+	resp, err := bucket.Request(method, path, body, files...)
+	if err != nil {
+		panic(err)
+	}
 	defer resp.Body.Close()
 
 	if err != nil {

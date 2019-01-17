@@ -40,7 +40,11 @@ func (c *Cluster) fetchRecommendedShards() int {
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
 	var decoded gatewayPayload
-	decoder.Decode(&decoded)
+	err = decoder.Decode(&decoded)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%#v", decoded)
 	c.GatewayURL = decoded.URL
 
 	return decoded.Shards

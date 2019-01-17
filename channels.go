@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Soumil07/gocord/embeds"
 	"github.com/Soumil07/gocord/rest"
 )
 
@@ -61,6 +62,43 @@ func (s *Shard) CreateMessage(channelID string, message string) (m *Message, err
 	body, err := json.Marshal(&struct {
 		Content string `json:"content"`
 	}{message})
+	if err != nil {
+		return
+	}
+
+	err = s.Rest.Do(http.MethodPost, endpoint, body, &m)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *Shard) CreateMessageFile(channelID, content string, files ...rest.File) (m *Message, err error) {
+	endpoint := rest.ChannelMessages(channelID)
+
+	body, err := json.Marshal(&struct {
+		Content string `json:"content"`
+	}{content})
+	if err != nil {
+		return
+	}
+
+	err = s.Rest.Do(http.MethodPost, endpoint, body, &m, files...)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (s *Shard) CreateMessageEmbed(channelID string, embed *embeds.Embed, content string) (m *Message, err error) {
+	endpoint := rest.ChannelMessages(channelID)
+
+	body, err := json.Marshal(&struct {
+		Content string        `json:"content"`
+		Embed   *embeds.Embed `json:"embed"`
+	}{content, embed})
 	if err != nil {
 		return
 	}
