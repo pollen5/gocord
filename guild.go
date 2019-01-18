@@ -1,5 +1,12 @@
 package gocord
 
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/Soumil07/gocord/rest"
+)
+
 // defines guild related structs and helper functions
 
 // Guild represents a Discord guild. NOTE: some guilds are unavailable at the ready event, and most
@@ -52,4 +59,26 @@ type Member struct {
 }
 
 type GuildMemberPresence struct {
+}
+
+func (s *Shard) BanMember(guildID, userID, reason string, deleteMessageDays int) (err error) {
+	endpoint := rest.GuildBanMember(guildID, userID)
+
+	body, err := json.Marshal(&struct {
+		DeleteMessageDays int    `json:"delete-message-days"`
+		Reason            string `json:"reason"`
+	}{deleteMessageDays, reason})
+	if err != nil {
+		return
+	}
+
+	err = s.Rest.Do(http.MethodPut, endpoint, body, nil)
+	return
+}
+
+func (s *Shard) UnbanMember(guildID, userID string) (err error) {
+	endpoint := rest.GuildBanMember(guildID, userID)
+	err = s.Rest.Do(http.MethodDelete, endpoint, nil, nil)
+
+	return
 }

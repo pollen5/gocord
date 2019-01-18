@@ -1,5 +1,9 @@
 package rest
 
+// Rest API methods dealing with files and multipart form data have been taken from https://github.com/bwmarrin/discordgo
+// Copyright (c) 2015, Bruce Marriner
+// All rights reserved.
+
 import (
 	"bytes"
 	"encoding/json"

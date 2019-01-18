@@ -48,6 +48,16 @@ func main() {
 			embed.SetColor("blue").SetAuthor("gocord", "").SetDescription("An awesome Golang library.")
 
 			s.CreateMessageEmbed(m.ChannelID, embed, "")
+		} else if m.Content == "gocord avatar" {
+			avatar := m.Author.AvatarURL("", 2048)
+			fmt.Println(avatar)
+			embed := embeds.New()
+			embed.SetAuthor(m.Author.Username, avatar)
+			embed.Image = embeds.EmbedImage{
+				URL: avatar,
+			}
+
+			s.CreateMessageEmbed(m.ChannelID, embed, "")
 		}
 	})
 

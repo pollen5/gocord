@@ -53,5 +53,6 @@ const (
 	APIVersion = 6
 	// RestURL is the base URL for all rest api requests
 	RestURL     = "https://discordapp.com/api/v7"
+	CdnUrl      = "https://cdn.discordapp.com"
 	gatewayPath = "/gateway/bot"
 )
