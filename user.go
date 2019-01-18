@@ -49,10 +49,10 @@ func (u *User) DefaultAvatarURL(size int) string {
 }
 
 // FetchUser fetches a user given an ID
-func (s *Shard) FetchUser(ID string) (u *User, err error) {
+func (c *Cluster) FetchUser(ID string) (u *User, err error) {
 	endpoint := rest.User(ID)
 
-	err = s.Rest.Do(http.MethodGet, endpoint, nil, &u)
+	err = c.Rest.Do(http.MethodGet, endpoint, nil, &u)
 	if err != nil {
 		return
 	}

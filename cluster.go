@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-
+  "github.com/Soumil07/gocord/rest"
 	eventemitter "github.com/euskadi31/go-eventemitter"
 )
 
@@ -17,7 +17,7 @@ type Cluster struct {
 	TotalShards int
 	GatewayURL  string
 	Options     ClusterOptions
-
+  Rest *rest.RestManager
 	handlers sync.Map // event handlers
 }
 
@@ -55,6 +55,7 @@ func NewCluster(token string, opts ClusterOptions) *Cluster {
 	cluster := &Cluster{
 		Emitter: eventemitter.New(),
 		Token:   token,
+    Rest: rest.NewRestManager(token),
 	}
 	cluster.Options = opts
 	recShards := cluster.fetchRecommendedShards()

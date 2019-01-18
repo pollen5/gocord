@@ -19,10 +19,10 @@ import (
 	"github.com/Soumil07/gocord/rest"
 )
 
-func (s *Shard) LeaveGuild(guildID string) (err error) {
+func (c *Cluster) LeaveGuild(guildID string) (err error) {
 	endpoint := rest.UserGuild("@me", guildID)
 
-	err = s.Rest.Do(http.MethodDelete, endpoint, nil, nil)
+	err = c.Rest.Do(http.MethodDelete, endpoint, nil, nil)
 	if err != nil {
 		return
 	}
@@ -30,7 +30,7 @@ func (s *Shard) LeaveGuild(guildID string) (err error) {
 	return
 }
 
-func (s *Shard) ModifyUser(username, avatar string) (u *User, err error) {
+func (c *Cluster) ModifyUser(username, avatar string) (u *User, err error) {
 	endpoint := rest.User("@me")
 	body, err := json.Marshal(&struct {
 		Username string `json:"username"`
@@ -41,11 +41,11 @@ func (s *Shard) ModifyUser(username, avatar string) (u *User, err error) {
 		return
 	}
 
-	err = s.Rest.Do(http.MethodPatch, endpoint, body, &u)
+	err = c.Rest.Do(http.MethodPatch, endpoint, body, &u)
 	return
 }
 
-func (s *Shard) SetAvatar(avatar io.Reader) (u *User, err error) {
+func (c *Cluster) SetAvatar(avatar io.Reader) (u *User, err error) {
 	_, ext, err := image.Decode(avatar)
 	if err != nil {
 		return
@@ -59,9 +59,9 @@ func (s *Shard) SetAvatar(avatar io.Reader) (u *User, err error) {
 	encoded := base64.StdEncoding.EncodeToString(content)
 	data := fmt.Sprintf("data:image/%s;base64;%s", strings.ToLower(ext), encoded)
 
-	return s.ModifyUser("", data)
+	return c.ModifyUser("", data)
 }
 
-func (s *Shard) SetUsername(username string) (*User, error) {
-	return s.ModifyUser(username, "")
+func (c *Cluster) SetUsername(username string) (*User, error) {
+	return c.ModifyUser(username, "")
 }

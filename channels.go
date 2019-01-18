@@ -63,28 +63,28 @@ func (m *Message) EditedAt() (time.Time, error) {
 }
 
 // CreateMessage sends a message to the specified channel
-func (s *Shard) CreateMessage(channelID string, message string) (*Message, error) {
-	return s.CreateMessageComplex(CreateMessage{
+func (c *Cluster) CreateMessage(channelID string, message string) (*Message, error) {
+	return c.CreateMessageComplex(CreateMessage{
 		ChannelID: channelID,
 		Content:   message,
 	})
 }
 
-func (s *Shard) CreateMessageFile(channelID string, files ...rest.File) (*Message, error) {
-	return s.CreateMessageComplex(CreateMessage{
+func (c *Cluster) CreateMessageFile(channelID string, files ...rest.File) (*Message, error) {
+	return c.CreateMessageComplex(CreateMessage{
 		ChannelID: channelID,
 		Files:     files,
 	})
 }
 
-func (s *Shard) CreateMessageEmbed(channelID string, embed *embeds.Embed) (*Message, error) {
-	return s.CreateMessageComplex(CreateMessage{
+func (c *Cluster) CreateMessageEmbed(channelID string, embed *embeds.Embed) (*Message, error) {
+	return c.CreateMessageComplex(CreateMessage{
 		ChannelID: channelID,
 		Embed:     embed,
 	})
 }
 
-func (s *Shard) CreateMessageComplex(c CreateMessage) (m *Message, err error) {
+func (s *Cluster) CreateMessageComplex(c CreateMessage) (m *Message, err error) {
 	endpoint := rest.ChannelMessages(c.ChannelID)
 
 	body, err := json.Marshal(&struct {
@@ -99,7 +99,7 @@ func (s *Shard) CreateMessageComplex(c CreateMessage) (m *Message, err error) {
 	return
 }
 
-func (s *Shard) EditMessage(channelID, messageID, message string) (m *Message) {
+func (c *Cluster) EditMessage(channelID, messageID, message string) (m *Message) {
 	endpoint := rest.ChannelMessage(messageID, channelID)
 
 	body, err := json.Marshal(&struct {
@@ -109,7 +109,7 @@ func (s *Shard) EditMessage(channelID, messageID, message string) (m *Message) {
 		return
 	}
 
-	err = s.Rest.Do(http.MethodPatch, endpoint, body, &m)
+	err = c.Rest.Do(http.MethodPatch, endpoint, body, &m)
 	if err != nil {
 		return
 	}
@@ -117,39 +117,39 @@ func (s *Shard) EditMessage(channelID, messageID, message string) (m *Message) {
 	return
 }
 
-func (s *Shard) CreateReaction(channelID, messageID, emoji string) (err error) {
+func (c *Cluster) CreateReaction(channelID, messageID, emoji string) (err error) {
 	endpoint := rest.ChannelMessageReactions("@me", channelID, messageID, emoji)
-	err = s.Rest.Do(http.MethodPut, endpoint, nil, nil)
+	err = c.Rest.Do(http.MethodPut, endpoint, nil, nil)
 
 	return
 }
 
-func (s *Shard) RemoveReaction(userID, channelID, messageID, emoji string) (err error) {
+func (c *Cluster) RemoveReaction(userID, channelID, messageID, emoji string) (err error) {
 	endpoint := rest.ChannelMessageReactions(userID, channelID, messageID, emoji)
-	err = s.Rest.Do(http.MethodDelete, endpoint, nil, nil)
+	err = c.Rest.Do(http.MethodDelete, endpoint, nil, nil)
 
 	return
 }
 
-func (s *Shard) RemoveOwnReaction(channelID, messageID, emoji string) error {
-	return s.RemoveReaction("@me", channelID, messageID, emoji)
+func (c *Cluster) RemoveOwnReaction(channelID, messageID, emoji string) error {
+	return c.RemoveReaction("@me", channelID, messageID, emoji)
 }
 
-func (s *Shard) RemoveAllReactions(channelID, messageID string) (err error) {
+func (c *Cluster) RemoveAllReactions(channelID, messageID string) (err error) {
 	endpoint := rest.ChannelMessageReactionsAll(channelID, messageID)
-	err = s.Rest.Do(http.MethodDelete, endpoint, nil, nil)
+	err = c.Rest.Do(http.MethodDelete, endpoint, nil, nil)
 
 	return
 }
 
-func (s *Shard) DeleteMessage(channelID, messageID string) (err error) {
+func (c *Cluster) DeleteMessage(channelID, messageID string) (err error) {
 	endpoint := rest.ChannelMessage(messageID, channelID)
-	err = s.Rest.Do(http.MethodDelete, endpoint, nil, nil)
+	err = c.Rest.Do(http.MethodDelete, endpoint, nil, nil)
 
 	return
 }
 
-func (s *Shard) BulkDeleteMessages(channelID string, amount int) (err error) {
+func (c *Cluster) BulkDeleteMessages(channelID string, amount int) (err error) {
 	if amount < 2 || amount > 100 {
 		return errors.New("amount must be between 2 and 100")
 	}
@@ -162,6 +162,6 @@ func (s *Shard) BulkDeleteMessages(channelID string, amount int) (err error) {
 		return
 	}
 
-	err = s.Rest.Do(http.MethodPost, endpoint, body, nil)
+	err = c.Rest.Do(http.MethodPost, endpoint, body, nil)
 	return
 }

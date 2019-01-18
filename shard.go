@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Soumil07/gocord/cache"
-	"github.com/Soumil07/gocord/rest"
 	"github.com/gorilla/websocket"
 )
 
@@ -30,7 +29,6 @@ type Shard struct {
 	Seq        int
 	SessionID  string
 	GuildCache *cache.Cache // a mutable LRU cache with capacity set to 0
-	Rest       *rest.RestManager
 }
 
 // NewShard returns a new shard instance
@@ -42,7 +40,6 @@ func NewShard(ID int, cluster *Cluster) *Shard {
 		ID:         ID,
 		Token:      cluster.Token,
 		GuildCache: cache.NewCache(0),
-		Rest:       rest.NewRestManager(cluster.Token),
 	}
 
 	return shard

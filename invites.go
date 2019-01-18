@@ -15,7 +15,7 @@ type Invite struct {
 	MemberCount   int      `json:"approximate_member_count"`
 }
 
-func (s *Shard) FetchInvite(code string, withCounts bool) (i *Invite, err error) {
+func (c *Cluster) FetchInvite(code string, withCounts bool) (i *Invite, err error) {
 	endpoint := rest.Invite(code)
 	body, err := json.Marshal(&struct {
 		WithCounts bool `json:"with_counts"`
@@ -25,12 +25,12 @@ func (s *Shard) FetchInvite(code string, withCounts bool) (i *Invite, err error)
 		return
 	}
 
-	err = s.Rest.Do(http.MethodGet, endpoint, body, &i)
+	err = c.Rest.Do(http.MethodGet, endpoint, body, &i)
 	return
 }
 
-func (s *Shard) DeleteInvite(code string) (i *Invite, err error) {
+func (c *Cluster) DeleteInvite(code string) (i *Invite, err error) {
 	endpoint := rest.Invite(code)
-	err = s.Rest.Do(http.MethodDelete, endpoint, nil, &i)
+	err = c.Rest.Do(http.MethodDelete, endpoint, nil, &i)
 	return
 }

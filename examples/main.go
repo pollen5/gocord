@@ -28,7 +28,7 @@ func main() {
 	})
 	c.Subscribe("message", func(s *gocord.Shard, m *gocord.Message) {
 		if m.Content == "gocord ping" {
-			s.CreateMessage(m.ChannelID, "Pong!")
+			c.CreateMessage(m.ChannelID, "Pong!")
 		} else if m.Content == "gocord file" {
 			file, err := os.Open("examples/gopher.jpg")
 			if err != nil {
@@ -42,12 +42,12 @@ func main() {
 				ContentType: "image/png",
 			}
 
-			s.CreateMessageFile(m.ChannelID, "", f)
+			c.CreateMessageFile(m.ChannelID, f)
 		} else if m.Content == "gocord embed" {
 			embed := embeds.New()
 			embed.SetColor("blue").SetAuthor("gocord", "").SetDescription("An awesome Golang library.")
 
-			s.CreateMessageEmbed(m.ChannelID, embed, "")
+			c.CreateMessageEmbed(m.ChannelID, embed)
 		} else if m.Content == "gocord avatar" {
 			avatar := m.Author.AvatarURL("", 2048)
 			fmt.Println(avatar)
@@ -57,7 +57,7 @@ func main() {
 				URL: avatar,
 			}
 
-			s.CreateMessageEmbed(m.ChannelID, embed, "")
+			c.CreateMessageEmbed(m.ChannelID, embed)
 		}
 	})
 
